@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+
+    <!--    设置日志输出-->
+    <settings>
+        <setting name="logImpl"  value="STDOUT_LOGGING"/>
+    </settings>
+    <!--    注册实体类的别名-->
+    <typeAliases>
+        <package name="art.caixi.crm.model"/>
+    </typeAliases>
+
+    <!--    注册mapper.xml文件-->
+    <mappers>
+        <!--        <mapper class="art.caixi.mapper.UsersMapper"></mapper>-->
+        <package name="art.caixi.crm.mapper"/>
+    </mappers>
+
+</configuration>
