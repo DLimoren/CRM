@@ -25,6 +25,7 @@
 
 		// 给创建市场活动按钮添加单击事件
 		$("#createActivityBtn").click(function (){
+			$("#createActivityForm").get(0).reset();
 			$("#createActivityModal").modal("show");
 		});
 
@@ -37,7 +38,103 @@
 			var cost = $.trim($("#create-cost").val());
 			var description = $.trim($("#create-description").val());
 			// 表单验证
+			if(owner == ""){
+				alert("所有者不能为空");
+				return ;
+			}
+			if(name == "") {
+				alert("名称不能为空");
+				return ;
+			}
+			if(startDate != "" && endDate != ""){
+				if(endDate < startDate) {
+					alert("结束日期不能比开始日期小");
+					return ;
+				}
+			}
+			// 成本只能为非负整数
+			// 正则表达式
+			var regExp = /^(([1-9]\d*)|0)$/;
+			if(!regExp.test(cost)){
+				alert("成本只能是非负整数");
+				return ;
+			}
+			$.ajax({
+				url:"workbench/activity/saveCreateActivity.do",
+				data:{
+					owner:owner,
+					name:name,
+					startDate:startDate,
+					endDate:endDate,
+					cost:cost,
+					description:description,
+				},
+				type:'post',
+				dataType:'json',
+				success:function (data) {
+					if(data.code == '1'){
+						// 关闭模态窗口
+						$("#createActivityModal").modal("hide");
+						// 刷新模态窗口
+					}
+					else {
+						alert(data.message);
+						$("#createActivityModal").modal("show");
+					}
+				}
+			})
+
 		});
+
+
+		$(".mydate").datetimepicker({
+			language:'zh-CN',
+			format:'yyyy-mm-dd',
+			minView:'month',
+			initialDate:new Date(),
+			autoclose:true,
+			todayBtn:true,
+			clearBtn:true
+		})
+
+		//  当页面加载完毕 查询第一页及所有市场活动的总条数
+		//  收集参数
+		var name = $("#query-name").val();
+		var owner = $("#query-owner").val();
+		var startDate = $("#query-startDate").val();
+		var endDate = $("#query-endDate").val();
+		var pageNo = 1 ;
+		var pageSize = 10 ;
+
+		$.ajax({
+			url: 'workbench/activity/queryActivityByConditionForPage.do',
+			data:{
+				name:name,
+				owner:owner,
+				startDate:startDate,
+				endDate:endDate,
+				pageNo:pageNo,
+				pageSize:pageSize
+			},
+			type:'post',
+			dataType: 'json',
+			success:function(data){
+				$("#totalRowsB").text(data.totalRows);
+				var htmlStr = "";
+				$.each(data.activityList , function (index , obj ) {
+					console.log("laji")
+					htmlStr += "<tr class= \"active\">";
+					htmlStr += "<td><input type=\"checkbox\" value = "+ this.id +"/></td>";
+					htmlStr += "<td><a style=\"text-decoration: none; cursor: pointer;\" onclick=\"window.location.href='detail.html';\">"+ this.name +"</a></td>";
+					htmlStr += "<td>"+ this.owner+"</td>";
+					htmlStr += "<td>"+ this.startDate +"</td>";
+					htmlStr += "<td>"+ this.endDate +"</td>";
+					htmlStr += "</tr>";
+				});
+				$("#tBody").html(htmlStr);
+			}
+		})
+
 	});
 	
 </script>
@@ -56,7 +153,7 @@
 				</div>
 				<div class="modal-body">
 				
-					<form class="form-horizontal" role="form">
+					<form class="form-horizontal" id="createActivityForm" role="form">
 					
 						<div class="form-group">
 							<label for="create-marketActivityOwner" class="col-sm-2 control-label">所有者<span style="font-size: 15px; color: red;">*</span></label>
@@ -76,11 +173,11 @@
 						<div class="form-group">
 							<label for="create-startDate" class="col-sm-2 control-label">开始日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="create-startDate">
+								<input type="text" class="form-control mydate" id="create-startDate" readonly>
 							</div>
 							<label for="create-endDate" class="col-sm-2 control-label">结束日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="create-endDate">
+								<input type="text" class="form-control mydate" id="create-endDate" readonly>
 							</div>
 						</div>
                         <div class="form-group">
@@ -228,14 +325,14 @@
 				  <div class="form-group">
 				    <div class="input-group">
 				      <div class="input-group-addon">名称</div>
-				      <input class="form-control" type="text">
+				      <input class="form-control" type="text" id="query-name">
 				    </div>
 				  </div>
 				  
 				  <div class="form-group">
 				    <div class="input-group">
 				      <div class="input-group-addon">所有者</div>
-				      <input class="form-control" type="text">
+				      <input class="form-control" type="text" id="query-owner">
 				    </div>
 				  </div>
 
@@ -243,13 +340,13 @@
 				  <div class="form-group">
 				    <div class="input-group">
 				      <div class="input-group-addon">开始日期</div>
-					  <input class="form-control" type="text" id="startTime" />
+					  <input class="form-control" type="text" id="query-startDate" />
 				    </div>
 				  </div>
 				  <div class="form-group">
 				    <div class="input-group">
 				      <div class="input-group-addon">结束日期</div>
-					  <input class="form-control" type="text" id="endTime">
+					  <input class="form-control" type="text" id="query-endDate">
 				    </div>
 				  </div>
 				  
@@ -280,20 +377,20 @@
 							<td>结束日期</td>
 						</tr>
 					</thead>
-					<tbody>
-						<tr class="active">
-							<td><input type="checkbox" /></td>
-							<td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.html';">发传单</a></td>
-                            <td>zhangsan</td>
-							<td>2020-10-10</td>
-							<td>2020-10-20</td>
-						</tr>
-                        <tr class="active">
-                            <td><input type="checkbox" /></td>
-                            <td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.html';">发传单</a></td>
-                            <td>zhangsan</td>
-                            <td>2020-10-10</td>
-                            <td>2020-10-20</td>
+					<tbody id="tBody">
+<%--						<tr class="active">--%>
+<%--							<td><input type="checkbox" /></td>--%>
+<%--							<td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.html';">发传单</a></td>--%>
+<%--                            <td>zhangsan</td>--%>
+<%--							<td>2020-10-10</td>--%>
+<%--							<td>2020-10-20</td>--%>
+<%--						</tr>--%>
+<%--                        <tr class="active">--%>
+<%--                            <td><input type="checkbox" /></td>--%>
+<%--                            <td><a style="text-decoration: none; cursor: pointer;" onclick="window.location.href='detail.html';">发传单</a></td>--%>
+<%--                            <td>zhangsan</td>--%>
+<%--                            <td>2020-10-10</td>--%>
+<%--                            <td>2020-10-20</td>--%>
                         </tr>
 					</tbody>
 				</table>
@@ -301,7 +398,7 @@
 			
 			<div style="height: 50px; position: relative;top: 30px;">
 				<div>
-					<button type="button" class="btn btn-default" style="cursor: default;">共<b>50</b>条记录</button>
+					<button type="button" class="btn btn-default" style="cursor: default;">共<b id="totalRowsB">50</b>条记录</button>
 				</div>
 				<div class="btn-group" style="position: relative;top: -34px; left: 110px;">
 					<button type="button" class="btn btn-default" style="cursor: default;">显示</button>

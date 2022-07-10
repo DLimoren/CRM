@@ -16,12 +16,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class ActivityController {
     @Autowired
     private ActivityService activityService;
+    @Autowired
     private UserService userService;
     @RequestMapping("/workbenck/activity/index.do")
     public String index(HttpServletRequest request){
@@ -43,7 +46,8 @@ public class ActivityController {
 
             if(ret > 0) {
                 returnObject.setCode(Contants.RETURN_OBJECT_CODE_SUCCESS);
-            }{
+            }
+            else {
                 returnObject.setCode(Contants.RETURN_OBJECT_CODE_FAIL);
                 returnObject.setMessage("系统忙，请稍后重试......");
             }
@@ -54,5 +58,30 @@ public class ActivityController {
         }
 
         return returnObject;
+    }
+
+    @RequestMapping("/workbench/activity/queryActivityByConditionForPage.do")
+    @ResponseBody
+    public Object queryActivityByConditionForPage(String name , String owner , String startDate,
+                                                  String endDate, int pageNo , int pageSize){
+        Map<String , Object> map = new HashMap<>();
+        map.put("name" , name );
+        map.put("owner" , owner );
+        map.put("startDate" , startDate );
+        map.put("endDate" , endDate );
+        int beginNo = (pageNo-1) * pageSize;
+        System.out.println(pageNo + "-----------这是我的输出--------------------------------------------------------------------------------------------");
+        System.out.println(pageSize + "------------这是我的输出----------------------------------------------------------------------------------------------");
+        map.put("beginNo" , beginNo);
+        map.put("pageSize", pageSize);
+        List<Activity> activityList = activityService.queryActivityByConditionForPage(map);
+        int totalRows = activityService.queryCountOfActivityByCondition(map);
+
+        // 根据查询结果生成响应信息
+        Map<String , Object> retMap = new HashMap<>();
+        retMap.put("activityList" , activityList);
+        retMap.put("totalRows" , totalRows);
+        System.out.println(retMap);
+        return retMap;
     }
 }
