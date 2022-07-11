@@ -70,9 +70,7 @@ public class ActivityController {
         map.put("startDate" , startDate );
         map.put("endDate" , endDate );
         int beginNo = (pageNo-1) * pageSize;
-        System.out.println(pageNo + "-----------这是我的输出--------------------------------------------------------------------------------------------");
-        System.out.println(pageSize + "------------这是我的输出----------------------------------------------------------------------------------------------");
-        map.put("beginNo" , beginNo);
+      map.put("beginNo" , beginNo);
         map.put("pageSize", pageSize);
         List<Activity> activityList = activityService.queryActivityByConditionForPage(map);
         int totalRows = activityService.queryCountOfActivityByCondition(map);
@@ -83,5 +81,26 @@ public class ActivityController {
         retMap.put("totalRows" , totalRows);
         System.out.println(retMap);
         return retMap;
+    }
+
+    @RequestMapping("workbench/activity/deleteActivityByIds.do")
+    @ResponseBody
+    public Object deleteActivityByIds(String[] id){
+        ReturnObject returnObject = new ReturnObject();
+        try{
+            int ret = activityService.deleteActivityByIds(id);
+            if(ret > 0){
+                returnObject.setCode(Contants.RETURN_OBJECT_CODE_SUCCESS);
+            }
+            else {
+                returnObject.setCode(Contants.RETURN_OBJECT_CODE_FAIL);
+                returnObject.setMessage("系统忙，请稍后");
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            returnObject.setCode(Contants.RETURN_OBJECT_CODE_FAIL);
+            returnObject.setMessage("系统忙，请稍后");
+        }
+        return returnObject;
     }
 }
