@@ -146,13 +146,122 @@
 					dataType:'json',
 					success: function (data){
 						if(data.code == "1"){
-							queryActivityByConditionForPage($("#demo_page1").bs_pagination('getOption','currentPage'),$("#demo_page1").bs_pagination('getOption','rowsPerPage'))
+							queryActivityByConditionForPage($("#demo_page1").bs_pagination('getOption','currentPage'),$("#demo_page1").bs_pagination('getOption','rowsPerPage'));
 						}else{
 							alert(data.message);
 						}
 					}
 				});
 			}
+		});
+
+		//  给修改按钮添加单击事件
+		$("#editActivityBtn").click(function () {
+			var checkedIds =  $("#tBody input[type = 'checkbox']:checked");
+			if(checkedIds.size() == 0 ){
+				alert("请选择要修改的市场活动");
+				return ;
+			}
+			if(checkedIds.size() > 1){
+				alert("每次只能修改一条市场活动");
+				return ;
+			}
+			var id = checkedIds[0].value;
+
+			$.ajax({
+				url:'workbench/activity/queryActivityById.do',
+				data:{
+					id:id
+				},
+				type:'post',
+				dataType:'json',
+				success:function(data){
+					$("#edit-id").val(data.id);
+					$("#edit-marketActivityOwner").val(data.owner);
+					$("#edit-marketActivityName").val(data.name);
+					$("#edit-startDate").val(data.startDate);
+					$("#edit-endDate").val(data.endDate);
+					$("#edit-cost").val(data.cost);
+					$("#edit-description").val(data.description);
+
+					// 弹出修改市场活动窗口
+					$("#editActivityModal").modal("show");
+				}
+			});
+		});
+
+		$("#saveEditActivity").click(function (){
+			var id = $("#edit-id").val();
+			var owner = $("#edit-marketActivityOwner").val();
+			var name = $.trim($("#edit-marketActivityName").val());
+			var startDate = $("#edit-startDate").val();
+			var endDate = $("#edit-endDate").val();
+			var cost = $.trim($("#edit-cost").val());
+			var description = $.trim($("#edit-description").val());
+
+			// 表单验证
+			if(owner == ""){
+				alert("所有者不能为空");
+				return ;
+			}
+			if(name == "") {
+				alert("名称不能为空");
+				return ;
+			}
+			if(startDate != "" && endDate != ""){
+				if(endDate < startDate) {
+					alert("结束日期不能比开始日期小");
+					return ;
+				}
+			}
+			// 成本只能为非负整数
+			// 正则表达式
+			var regExp = /^(([1-9]\d*)|0)$/;
+			if(!regExp.test(cost)){
+				alert("成本只能是非负整数");
+				return ;
+			}
+
+			$.ajax({
+				url:'workbench/activity/saveEditActivity.do',
+				data:{
+					id:id,
+					owner:owner,
+					name:name,
+					startDate:startDate,
+					endDate:endDate,
+					cost:cost,
+					description:description
+				},
+				type:'post',
+				dataType:'json',
+				success:function (data) {
+					if(data.code == "1"){
+						$("#editActivityModal").modal("hide");
+						queryActivityByConditionForPage($("#demo_page1").bs_pagination('getOption','currentPage'),$("#demo_page1").bs_pagination('getOption','rowsPerPage'));
+					}else {
+						alert(data.message);
+						$("#editActivityModal").modal("show");
+					}
+				}
+			});
+		});
+
+		// 给批量导出按钮添加单击事件
+
+		$("#exportActivityAllBtn").click(function () {
+			window.location.href="workbench/activity/exportAllActivities.do";
+		});
+
+		$("#exportActivityCheckedBtn").click(function () {
+			var checkedIds =  $("#tBody input[type = 'checkbox']:checked");
+			var ids = "?";
+			$.each(checkedIds , function () {
+				ids += "id=" + this.value + "&";
+			});
+			ids = ids.substr(0 , ids.length - 1);
+			console.log(ids);
+			window.location.href="workbench/activity/exportCheckedActivities.do" + ids;
 		});
 	});
 
@@ -192,7 +301,7 @@
 				if(data.totalRows % pageSize == 0) {
 					totalPages = data.totalRows/pageSize;
 				}else {
-					totalPages = parseInt(data.totalRows/pageSize + 1);
+					totalPages = parseInt(data.totalRows / pageSize + 1);
 				}
 
 				$("#demo_page1").bs_pagination({
@@ -210,9 +319,7 @@
 					onChangePage: function (event , pageObj) {
 						queryActivityByConditionForPage(pageObj.currentPage , pageObj.rowsPerPage);
 					}
-
 				})
-
 			}
 		});
 	}
@@ -298,7 +405,7 @@
 				<div class="modal-body">
 				
 					<form class="form-horizontal" role="form">
-					
+						<input type="hidden"  id="edit-id">
 						<div class="form-group">
 							<label for="edit-marketActivityOwner" class="col-sm-2 control-label">所有者<span style="font-size: 15px; color: red;">*</span></label>
 							<div class="col-sm-10" style="width: 300px;">
@@ -315,13 +422,13 @@
 						</div>
 
 						<div class="form-group">
-							<label for="edit-startTime" class="col-sm-2 control-label">开始日期</label>
+							<label for="edit-startDate" class="col-sm-2 control-label">开始日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="edit-startTime" value="2020-10-10">
+								<input type="text" class="form-control" id="edit-startDate" value="2020-10-10">
 							</div>
-							<label for="edit-endTime" class="col-sm-2 control-label">结束日期</label>
+							<label for="edit-endDate" class="col-sm-2 control-label">结束日期</label>
 							<div class="col-sm-10" style="width: 300px;">
-								<input type="text" class="form-control" id="edit-endTime" value="2020-10-20">
+								<input type="text" class="form-control" id="edit-endDate" value="2020-10-20">
 							</div>
 						</div>
 						
@@ -333,9 +440,9 @@
 						</div>
 						
 						<div class="form-group">
-							<label for="edit-describe" class="col-sm-2 control-label">描述</label>
+							<label for="edit-description" class="col-sm-2 control-label">描述</label>
 							<div class="col-sm-10" style="width: 81%;">
-								<textarea class="form-control" rows="3" id="edit-describe">市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等</textarea>
+								<textarea class="form-control" rows="3" id="edit-description">市场活动Marketing，是指品牌主办或参与的展览会议与公关市场活动，包括自行主办的各类研讨会、客户交流会、演示会、新产品发布会、体验会、答谢会、年会和出席参加并布展或演讲的展览会、研讨会、行业交流会、颁奖典礼等</textarea>
 							</div>
 						</div>
 						
@@ -344,7 +451,7 @@
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-					<button type="button" class="btn btn-primary" data-dismiss="modal">更新</button>
+					<button type="button" id="saveEditActivity" class="btn btn-primary"  >更新</button>
 				</div>
 			</div>
 		</div>
@@ -436,14 +543,14 @@
 			</div>
 			<div class="btn-toolbar" role="toolbar" style="background-color: #F7F7F7; height: 50px; position: relative;top: 5px;">
 				<div class="btn-group" style="position: relative; top: 18%;">
-				  <button type="button" class="btn btn-primary" id="createActivityBtn" data-target="#createActivityModal"><span class="glyphicon glyphicon-plus"></span> 创建</button>
-				  <button type="button" class="btn btn-default" data-toggle="modal" data-target="#editActivityModal"><span class="glyphicon glyphicon-pencil"></span> 修改</button>
+				  <button type="button" class="btn btn-primary" id="createActivityBtn" ><span class="glyphicon glyphicon-plus"></span> 创建</button>
+				  <button type="button" class="btn btn-default" id="editActivityBtn" ><span class="glyphicon glyphicon-pencil"></span> 修改</button>
 				  <button type="button" class="btn btn-danger" id="deleteActivityBtn"><span class="glyphicon glyphicon-minus"></span> 删除</button>
 				</div>
 				<div class="btn-group" style="position: relative; top: 18%;">
                     <button type="button" class="btn btn-default" data-toggle="modal" data-target="#importActivityModal" ><span class="glyphicon glyphicon-import"></span> 上传列表数据（导入）</button>
                     <button id="exportActivityAllBtn" type="button" class="btn btn-default"><span class="glyphicon glyphicon-export"></span> 下载列表数据（批量导出）</button>
-                    <button id="exportActivityXzBtn" type="button" class="btn btn-default"><span class="glyphicon glyphicon-export"></span> 下载列表数据（选择导出）</button>
+                    <button id="exportActivityCheckedBtn" type="button" class="btn btn-default"><span class="glyphicon glyphicon-export"></span> 下载列表数据（选择导出）</button>
                 </div>
 			</div>
 			<div style="position: relative;top: 10px;">

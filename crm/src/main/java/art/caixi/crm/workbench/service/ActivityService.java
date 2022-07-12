@@ -12,4 +12,12 @@ public interface ActivityService {
     int queryCountOfActivityByCondition(Map<String , Object> map);
 
     int deleteActivityByIds(String[] ids);
+
+    Activity queryActivityById(String id);
+
+    int saveEditActivity(Activity activity);
+
+    List<Activity> queryAllActivities();
+
+    List<Activity> queryCheckedActivities(String[] ids);
 }
