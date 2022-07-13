@@ -260,8 +260,42 @@
 				ids += "id=" + this.value + "&";
 			});
 			ids = ids.substr(0 , ids.length - 1);
-			console.log(ids);
 			window.location.href="workbench/activity/exportCheckedActivities.do" + ids;
+		});
+
+		// 给批量导入按钮添加单击事件
+		$("#importActivityBtn").click(function () {
+			var activityFileName = $("#activityFile").val();
+			var suffix = activityFileName.substr(activityFileName.lastIndexOf(".") + 1).toLowerCase();
+			if(suffix != "xls") {
+				alert("只支持excel文件")
+				return ;
+			}
+			var activityFile = $("#activityFile")[0].files[0];
+			if(activityFile.size > 5*1024*1024){
+				alert("文件大小不能超过5MB");
+				return;
+			}
+			var formdata = new FormData();
+			formdata.append("activityFile" , activityFile);
+			$.ajax({
+				url:"workbench/activity/importActivity",
+				data:formdata,
+				type:'post',
+				dataType:'json',
+				processData:false,
+				contentType:false,
+				success : function (data) {
+					if(data.code == "1"){
+						alert("成功导入" + data.retData + "条记录");
+						$("#importActivityModal").modal("hide");
+						queryActivityByConditionForPage(1 , $("#demo_page1").bs_pagination('getOption','rowsPerPage'));
+					}else{
+						alert(data.message);
+						$("#importActivityModal").modal("show");
+					}
+				}
+			})
 		});
 	});
 

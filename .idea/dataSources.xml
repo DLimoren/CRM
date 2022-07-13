@@ -8,5 +8,12 @@
       <jdbc-url>jdbc:mysql://localhost:3306/crm</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="root@caixi-remote" uuid="d6cb68e5-f1c8-497d-bb72-ec40ef696ca8">
+      <driver-ref>mysql.8</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
+      <jdbc-url>jdbc:mysql://47.102.152.110:3306/crm</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

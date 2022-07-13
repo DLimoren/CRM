@@ -20,4 +20,6 @@ public interface ActivityService {
     List<Activity> queryAllActivities();
 
     List<Activity> queryCheckedActivities(String[] ids);
+
+    int saveCreateActivityByList(List<Activity> activityList);
 }

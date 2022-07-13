@@ -39,6 +39,17 @@ public class UserController {
         User user = userService.queryUserByLoginActAndLoginPwd(map);
 
         ReturnObject returnObject = new ReturnObject();
+        returnObject.setRetData(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
+        System.out.println(request.getServerName());
         if(user == null){
             //登录失败
             returnObject.setCode(Contants.RETURN_OBJECT_CODE_FAIL);
